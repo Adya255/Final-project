@@ -4,8 +4,12 @@ module.exports.index = async (req, res) => {
      let { category } = req.query;
      let allListings;
      if(category){
+        if (!Array.isArray(category)) {
+            category = [category];
+        }
+
         allListings=await Listing.find({
-            category:category
+            category: { $in: category }
         });
      }else{
         allListings=await Listing.find({});
@@ -44,6 +48,13 @@ module.exports.createListing = async (req, res) => {
     let url = req.file.path;
     let filename = req.file.filename;
 
+     let listingData = req.body.listing;
+
+   // ensure category is always an array
+    if (listingData.category && !Array.isArray(listingData.category)) {
+        listingData.category = [listingData.category];
+    }
+    
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
     newListing.image = { url, filename };
