@@ -7,7 +7,7 @@ module.exports.isLoggedIn =(req,res,next) => {
        if(!req.isAuthenticated()){
         //redirectUrl save
         req.session.redirectUrl=req.originalUrl;
-        req.flash("error","You must be logged in to create lisiting!");
+        req.flash("error","You must be logged in to create listing!");
          return res.redirect("/login");
     }
     next();
@@ -25,7 +25,7 @@ module.exports.saveRedirectUrl=(req,res,next) =>{
 module.exports.isOwner= async(req,res,next)=>{
      let {id} =req.params;
      let listing=await Listing.findById(id);
-     if(!listing.owner.equals(res.locals.currentUser._id)){
+     if(!listing || !listing.owner.equals(res.locals.currentUser._id)){
         req.flash("error","You don't have permission to edit");
         return res.redirect(`/listings/${id}`);
     }
@@ -34,7 +34,7 @@ module.exports.isOwner= async(req,res,next)=>{
 
 
 module.exports.validateListing=(req,res,next)=>{
-     let {error}=ListingSchema.validate(req.body);
+     let {error}=ListingSchema.validate(req.body.listing);
      if(error){
         let errMsg=error.details.map((el)=> el.message).join(",");
         throw new ExpressError(400,errMsg);
@@ -45,7 +45,7 @@ module.exports.validateListing=(req,res,next)=>{
 };
 
 module.exports.validateReview=(req,res,next)=>{
-     let {error}=reviewSchema.validate(req.body);
+     let {error}=reviewSchema.validate(req.body.review);
      if(error){
         let errMsg=error.details.map((el)=> el.message).join(",");
         throw new ExpressError(400,errMsg);
@@ -59,7 +59,7 @@ module.exports.validateReview=(req,res,next)=>{
 module.exports.isreviewAuthor= async(req,res,next)=>{
      let {id,reviewId} =req.params;
      let review=await Review.findById(reviewId);
-     if(!review.author.equals(res.locals.currentUser._id)){
+     if(!review || !review.author.equals(res.locals.currentUser._id)){
         req.flash("error","You are not the author of this review");
         return res.redirect(`/listings/${id}`);
     }
